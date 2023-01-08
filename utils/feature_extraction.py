@@ -101,7 +101,7 @@ def get_features_exact(paths, sampling_rate, add_noise=False):
 
     return combined_features
 
-def predict_folder_images(classifier, sampling_rate, folder_name='new_sounds'):
+def predict_folder_images(classifier, sampling_rate, folder_name='new_sounds', pca=None , elbow_num=10):
     wav_locs = []
     emotions = ["positive", "negative", "neutral"]
 
@@ -110,14 +110,18 @@ def predict_folder_images(classifier, sampling_rate, folder_name='new_sounds'):
         wav_locs.append(file)
 
     features = get_features_exact(wav_locs, sampling_rate, add_noise=False).fillna(0)
+
+
+    if pca:
+        features = pca.transform(features)
+        features = features[:, :elbow_num]
+
     features = np.expand_dims(features, axis=2)
 
     y_pred = classifier.predict(features, batch_size=32, verbose=1)
     y_pred = np.argmax(y_pred,axis=1)
     for audio,pred in list(zip(wav_locs,y_pred)):
         print(f'{audio} was predicted as {emotions[pred]}')
-
-
 
 #
 # if __name__ == "__main__":
