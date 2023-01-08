@@ -18,7 +18,7 @@ import warnings
 import random
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import StandardScaler
-
+from kneed import KneeLocator
 
 warnings.filterwarnings('ignore')
 
@@ -133,10 +133,22 @@ X_test = scaler.transform(X_test)
 pca = PCA(n_components=577)
 x_traincnn = pca.fit_transform(X_train)
 x_testcnn = pca.transform(X_test)
-explained_variance = pca.explained_variance_ratio_
+vari = pca.explained_variance_ratio_
+x = []
+y = []
+counter = 0
+sum = 0
+for f in vari:
+    sum = sum + f
+    counter = counter + 1
+    x.append(counter)
+    y.append(sum)
+kn = KneeLocator(x, y, curve='concave', direction='increasing', interp_method='polynomial')
+elbow_num = kn.elbow
+
 
 # plot scree graph:
-plt.plot(pca.explained_variance_ratio_[:20], 'o-', linewidth=2,
+plt.plot(pca.explained_variance_ratio_[:100], 'o-', linewidth=2,
          color='blue')  # showing all the 577 features would be caos so ill show only 20principal components
 plt.title('Scree Plot')
 plt.xlabel('Principal Component')
@@ -144,9 +156,8 @@ plt.ylabel('Variance Explained')
 plt.savefig('Scree_plot_pca')
 plt.show()
 
-elbow_num = 30
 
-print(f'Variance described by the first {elbow_num} principle components is {sum(pca.explained_variance_ratio_[:100])}')
+print(f'Variance described by the first {elbow_num} principle components is {np.sum(pca.explained_variance_ratio_[:elbow_num])}')
 # 0.59% variance of the data is good to go, now we will train the model on PCA(n_components=7)
 
 x_traincnn_filtered = x_traincnn[:, :elbow_num]
